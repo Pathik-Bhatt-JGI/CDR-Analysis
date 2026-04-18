@@ -204,6 +204,7 @@ def navigate_to(page_name):
         if page_name.lower() in opt.lower():
             st.session_state["main_nav"] = opt
             st.session_state["_main_nav_radio"] = opt
+            st.rerun()
             break
 
 def get_contacts():
