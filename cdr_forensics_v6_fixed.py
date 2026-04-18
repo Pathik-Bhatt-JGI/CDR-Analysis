@@ -1,7 +1,7 @@
 # ================================================================
-#  CDR FORENSICS PRO  v9.0 — REDESIGNED
+#  CDR FORENSICS PRO  v9.1 — COMPACT NAV
 #  Premium Cyber Intelligence & Digital Forensics Platform
-#  Identical functionality, complete UI/UX overhaul
+#  Top navigation bar with reduced spacing
 # ================================================================
 
 import streamlit as st
