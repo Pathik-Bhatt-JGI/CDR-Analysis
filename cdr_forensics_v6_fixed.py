@@ -552,52 +552,21 @@ def inject_css():
   pointer-events: none;
 }
 
-/* ── Sidebar hamburger ── */
-[data-testid="collapsedControl"] {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  position: fixed !important;
-  top: 12px !important;
-  left: 12px !important;
-  z-index: 99999 !important;
-  background: var(--bg2) !important;
-  border: 1px solid var(--border2) !important;
-  border-radius: var(--r2) !important;
-  width: 36px !important;
-  height: 36px !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
-  pointer-events: auto !important;
-}
-
-[data-testid="collapsedControl"] svg { 
-  color: var(--green) !important; 
-}
-
-[data-testid="collapsedControl"]:hover {
-  background: rgba(0,255,179,0.1) !important;
-  border-color: var(--green) !important;
-}
-
-/* ── Sidebar always visible ── */
+/* ── Hide Streamlit sidebar completely ── */
 [data-testid="stSidebar"] {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
+  display: none !important;
 }
 
-/* ── Collapse button always visible ── */
+[data-testid="collapsedControl"] {
+  display: none !important;
+}
+
 [data-testid="stSidebarCollapseButton"] { 
-  display: flex !important; 
-  visibility: visible !important; 
+  display: none !important; 
 }
 
 button[kind="header"] { 
-  display: flex !important; 
-  visibility: visible !important; 
+  display: none !important; 
 }
 
 /* ── Typography ── */
@@ -2503,104 +2472,143 @@ def page_all_records():
 
 
 # ─────────────────────────────────────────────
-#  SIDEBAR + MAIN
+#  TOP NAVIGATION BAR (Replaces Sidebar)
 # ─────────────────────────────────────────────
-def build_sidebar():
-    with st.sidebar:
+def build_top_nav():
+    """Build top navigation bar with dropdown menu"""
+    
+    # Initialize session state
+    if "main_nav" not in st.session_state:
+        st.session_state["main_nav"] = NAV_OPTIONS[0]
+    if st.session_state["main_nav"] not in NAV_OPTIONS:
+        st.session_state["main_nav"] = NAV_OPTIONS[0]
+    
+    # Top bar HTML/CSS
+    st.markdown("""
+    <style>
+    .top-nav-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(90deg, rgba(6,12,18,0.95) 0%, rgba(10,20,35,0.9) 100%);
+        border-bottom: 1px solid rgba(0,255,179,0.15);
+        padding: 12px 20px;
+        margin: -16px -16px 20px -16px;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    .top-nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: 'Exo 2', sans-serif;
+        font-weight: 800;
+        color: #E8F0F8;
+        font-size: 0.9rem;
+        letter-spacing: 0.05em;
+    }
+    .top-nav-brand svg {
+        width: 24px;
+        height: 24px;
+    }
+    .top-nav-menu {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex: 1;
+    }
+    .nav-dropdown {
+        min-width: 200px;
+    }
+    .nav-stats {
+        display: flex;
+        gap: 15px;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.7rem;
+        color: var(--t3);
+    }
+    .nav-stat-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .nav-stat-value {
+        color: var(--green);
+        font-weight: bold;
+    }
+    </style>
+    <div class="top-nav-bar">
+        <div class="top-nav-brand">
+            <svg viewBox="0 0 24 24" fill="#00FFB3"><path d="M1.75 7.18L0 5.43C2.64 2.61 6.22 1 10 1s7.36 1.61 10 4.43l-1.75 1.75C16.16 4.77 13.18 3.5 10 3.5S3.84 4.77 1.75 7.18zm4.48 4.48L4.48 9.91C6.14 8.1 8.46 7 11.01 7S15.88 8.1 17.54 9.91l-1.75 1.75C14.5 10.23 12.83 9.5 11 9.5c-1.83 0-3.5.73-4.77 2.16zM11 13c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-1 9h2v-3.27c.44-.14.85-.35 1.22-.63L17 20l1-1.73L14.2 16.7c.15-.55.2-1.12.1-1.7h3.7v-2H14.3c-.38-1.1-1.2-2-2.3-2.35V10h-2v.65C8.9 11 8.08 11.9 7.7 13H4v2h3.7c-.1.58-.05 1.15.1 1.7L5 18.27 6 20l3.78-1.9c.37.28.78.49 1.22.63V22z"/></svg>
+            CDR FORENSICS
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Navigation controls in columns
+    col1, col2, col3, col4 = st.columns([2, 2, 1.5, 1.5])
+    
+    with col1:
+        selected = st.selectbox(
+            "Navigate to:",
+            NAV_OPTIONS,
+            index=NAV_OPTIONS.index(st.session_state["main_nav"]),
+            key="top_nav_select",
+            label_visibility="collapsed"
+        )
+        st.session_state["main_nav"] = selected
+    
+    with col2:
         dtype = st.session_state.get("device_type")
-
-        # Logo / Brand
-        st.markdown("""
-<div style="padding:20px 16px 22px;border-bottom:1px solid rgba(0,255,179,0.08);margin-bottom:16px">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-    <div style="width:32px;height:32px;border:1px solid rgba(0,255,179,0.2);border-radius:4px;display:flex;align-items:center;justify-content:center;background:rgba(0,255,179,0.04)">
-      <svg viewBox="0 0 24 24" fill="#00FFB3" width="16" height="16"><path d="M1.75 7.18L0 5.43C2.64 2.61 6.22 1 10 1s7.36 1.61 10 4.43l-1.75 1.75C16.16 4.77 13.18 3.5 10 3.5S3.84 4.77 1.75 7.18zm4.48 4.48L4.48 9.91C6.14 8.1 8.46 7 11.01 7S15.88 8.1 17.54 9.91l-1.75 1.75C14.5 10.23 12.83 9.5 11 9.5c-1.83 0-3.5.73-4.77 2.16zM11 13c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-1 9h2v-3.27c.44-.14.85-.35 1.22-.63L17 20l1-1.73L14.2 16.7c.15-.55.2-1.12.1-1.7h3.7v-2H14.3c-.38-1.1-1.2-2-2.3-2.35V10h-2v.65C8.9 11 8.08 11.9 7.7 13H4v2h3.7c-.1.58-.05 1.15.1 1.7L5 18.27 6 20l3.78-1.9c.37.28.78.49 1.22.63V22z"/></svg>
-    </div>
-    <div>
-      <div style="font-family:'Exo 2',sans-serif;font-size:0.85rem;font-weight:800;color:#E8F0F8;letter-spacing:0.05em">CDR FORENSICS</div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:#3A5570;letter-spacing:0.12em">v9.0 · INTEL PLATFORM</div>
-    </div>
-  </div>
-  <div style="display:flex;gap:6px">
-    <div style="flex:1;height:2px;background:var(--green);border-radius:2px"></div>
-    <div style="flex:1;height:2px;background:var(--cyan);border-radius:2px"></div>
-    <div style="flex:1;height:2px;background:var(--violet);border-radius:2px"></div>
-  </div>
-</div>""", unsafe_allow_html=True)
-
         if dtype:
             is_and = dtype == "android"
-            dev_col = "#00FFB3" if is_and else "#00B8FF"
-            st.markdown(f'<div style="background:rgba({("0,255,179" if is_and else "0,184,255")},0.05);border:1px solid rgba({("0,255,179" if is_and else "0,184,255")},0.15);border-radius:var(--r1);padding:7px 10px;margin-bottom:12px;font-family:var(--mono);font-size:0.62rem;color:{dev_col};letter-spacing:0.1em">{"ANDROID" if is_and else "iPHONE"} MODE ACTIVE</div>', unsafe_allow_html=True)
-
-        if "main_nav" not in st.session_state:
-            st.session_state["main_nav"] = NAV_OPTIONS[0]
-        if st.session_state["main_nav"] not in NAV_OPTIONS:
-            st.session_state["main_nav"] = NAV_OPTIONS[0]
-
-        try:
-            curr_idx = NAV_OPTIONS.index(st.session_state["main_nav"])
-        except ValueError:
-            curr_idx = 0
-
-        # Custom-styled nav options with icons
-        nav_display = [f"{NAV_ICONS.get(opt,'·')}  {opt}" for opt in NAV_OPTIONS]
-
-        selected_display = st.radio(
-            "Navigation",
-            nav_display,
-            index=curr_idx,
-            key="_main_nav_radio",
-            label_visibility="collapsed",
+            mode_text = "ANDROID MODE" if is_and else "iPHONE MODE"
+            mode_color = "#00FFB3" if is_and else "#00B8FF"
+            st.markdown(f'<div style="background:rgba({("0,255,179" if is_and else "0,184,255")},0.1);border:1px solid rgba({("0,255,179" if is_and else "0,184,255")},0.3);border-radius:6px;padding:8px 12px;font-family:var(--mono);font-size:0.65rem;color:{mode_color};text-align:center;font-weight:bold">{mode_text}</div>', unsafe_allow_html=True)
+    
+    with col3:
+        api_key = st.text_input(
+            "API Key",
+            value=st.session_state.get("ocid_key",""),
+            placeholder="OpenCelliD token",
+            type="password",
+            label_visibility="collapsed"
         )
-        # Map display back to real option
-        selected_idx = nav_display.index(selected_display) if selected_display in nav_display else curr_idx
-        selected = NAV_OPTIONS[selected_idx]
-        st.session_state["main_nav"] = selected
-
-        st.markdown("---")
-
-        # API Key
-        st.markdown('<div style="font-family:var(--mono);font-size:0.58rem;color:var(--t3);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:6px">Location API Key</div>', unsafe_allow_html=True)
-        api_key = st.text_input("API Token", value=st.session_state.get("ocid_key",""), placeholder="OpenCelliD / Unwired pk.token", type="password", label_visibility="collapsed")
         if api_key:
             st.session_state["ocid_key"] = api_key
-            st.markdown('<div class="abox abox-green" style="font-size:0.65rem;padding:6px 10px">Live GPS resolution active</div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div style="background:rgba(255,215,0,0.03);border:1px solid rgba(255,215,0,0.12);border-radius:var(--r1);padding:7px 10px;font-family:var(--mono);font-size:0.62rem;color:var(--t3)">Fallback estimation mode<br><a href="https://opencellid.org/register.php" target="_blank" style="color:var(--green)">Get OpenCelliD key ›</a></div>', unsafe_allow_html=True)
-
-        st.markdown("---")
-
-        # Session stats
-        manual = len(st.session_state.get("records",[])); bill = 0
-        br = st.session_state.get("bill_records",pd.DataFrame())
-        if isinstance(br,pd.DataFrame) and not br.empty: bill = len(br)
-        towers = len(st.session_state.get("tower_cache",{}))
-        book_cnt = len(st.session_state.get("contact_book",{}))
-        st.markdown(f"""
-<div style="background:rgba(0,255,179,0.02);border:1px solid var(--border);border-radius:var(--r2);padding:10px 12px">
-  <div style="font-family:var(--mono);font-size:0.58rem;color:var(--t3);letter-spacing:0.12em;margin-bottom:8px">// SESSION STATE</div>
-  <div style="font-family:var(--mono);font-size:0.7rem">
-    <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:var(--t3)">Manual</span><b style="color:var(--t1)">{manual}</b></div>
-    <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:var(--t3)">Bill PDF</span><b style="color:var(--cyan)">{bill}</b></div>
-    <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:var(--t3)">Tower Cache</span><b style="color:var(--amber)">{towers}</b></div>
-    <div style="display:flex;justify-content:space-between"><span style="color:var(--t3)">Identities</span><b style="color:var(--green)">{book_cnt}</b></div>
-  </div>
-</div>""", unsafe_allow_html=True)
-
-        st.markdown("---")
-        if st.button("Purge Session Data", use_container_width=True):
+    
+    with col4:
+        if st.button("Clear Session", use_container_width=True, key="clear_session_btn"):
             for k in ["records","bill_records","tower_cache","bill_raw_text","contact_book"]:
                 st.session_state.pop(k, None)
             st.rerun()
-
+    
+    # Session stats bar
+    st.markdown("---")
+    manual = len(st.session_state.get("records",[]))
+    bill = len(st.session_state.get("bill_records", pd.DataFrame())) if isinstance(st.session_state.get("bill_records"), pd.DataFrame) else 0
+    towers = len(st.session_state.get("tower_cache",{}))
+    book_cnt = len(st.session_state.get("contact_book",{}))
+    
+    s1, s2, s3, s4 = st.columns(4)
+    with s1:
+        st.metric("Manual Records", manual, delta=None)
+    with s2:
+        st.metric("Bill Records", bill, delta=None)
+    with s3:
+        st.metric("Tower Cache", towers, delta=None)
+    with s4:
+        st.metric("Identities", book_cnt, delta=None)
+    
+    st.markdown("---")
+    
     return st.session_state["main_nav"]
 
 
 def main():
     inject_css()
     inject_sidebar_toggle_js()
-    page = build_sidebar()
+    page = build_top_nav()
 
     if   "Device Selection" in page: page_device_select()
     elif "Tower Data"       in page: page_tower_entry()
