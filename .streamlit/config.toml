@@ -1,5 +1,6 @@
 [client]
 showErrorDetails = false
+toolbarMode = "minimal"
 
 [logger]
 level = "error"
@@ -10,3 +11,7 @@ backgroundColor = "#0a0e27"
 secondaryBackgroundColor = "#0f1629"
 textColor = "#e0e6ed"
 font = "sans serif"
+
+[server]
+runOnSave = true
+headless = true
