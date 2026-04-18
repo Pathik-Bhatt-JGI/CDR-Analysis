@@ -571,11 +571,17 @@ def inject_css():
   cursor: pointer !important;
   pointer-events: auto !important;
 }
-[data-testid="collapsedControl"] svg { color: var(--green) !important; }
-[data-testid="stSidebarCollapseButton"] { display: flex !important; visibility: visible !important; }
-button[kind="header"] { display: flex !important; visibility: visible !important; }
 
-/* ── Ensure sidebar always accessible ── */
+[data-testid="collapsedControl"] svg { 
+  color: var(--green) !important; 
+}
+
+[data-testid="collapsedControl"]:hover {
+  background: rgba(0,255,179,0.1) !important;
+  border-color: var(--green) !important;
+}
+
+/* ── Sidebar always visible ── */
 [data-testid="stSidebar"] {
   display: block !important;
   visibility: visible !important;
@@ -583,11 +589,15 @@ button[kind="header"] { display: flex !important; visibility: visible !important
   pointer-events: auto !important;
 }
 
-/* ── Prevent sidebar from being hidden ── */
-[data-testid="stSidebar"][aria-hidden="true"] {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+/* ── Collapse button always visible ── */
+[data-testid="stSidebarCollapseButton"] { 
+  display: flex !important; 
+  visibility: visible !important; 
+}
+
+button[kind="header"] { 
+  display: flex !important; 
+  visibility: visible !important; 
 }
 
 /* ── Typography ── */
@@ -1092,62 +1102,46 @@ def inject_sidebar_toggle_js():
     st.markdown("""
 <script>
 (function() {
-  function ensureToggleVisible() {
-    // Find the collapse button
-    const collapseBtn = document.querySelector('[data-testid="collapsedControl"]');
-    if (collapseBtn) {
-      // Make it always visible and accessible
-      Object.assign(collapseBtn.style, {
-        display: 'flex !important',
-        visibility: 'visible !important',
-        opacity: '1 !important',
-        position: 'fixed',
-        top: '12px',
-        left: '12px',
-        zIndex: '99999',
-        width: '36px',
-        height: '36px',
-        background: '#060C12',
-        border: '1px solid rgba(0,255,179,0.2)',
-        borderRadius: '8px',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        pointerEvents: 'auto'
-      });
-      
-      // Ensure the button is clickable
-      collapseBtn.style.pointerEvents = 'auto';
-      collapseBtn.onclick = function(e) {
-        e.stopPropagation();
-        // Trigger the actual collapse button click
-        const btn = document.querySelector('button[kind="header"]');
-        if (btn) btn.click();
-      };
-    }
-    
-    // Also ensure sidebar is always accessible
+  // Prevent sidebar from ever being hidden
+  function fixSidebar() {
+    // Get the sidebar
     const sidebar = document.querySelector('[data-testid="stSidebar"]');
     if (sidebar) {
+      // Force it to always be visible
       sidebar.style.display = 'block';
       sidebar.style.visibility = 'visible';
+      sidebar.style.opacity = '1';
+      sidebar.removeAttribute('aria-hidden');
+    }
+    
+    // Get the collapse button
+    const collapseBtn = document.querySelector('[data-testid="collapsedControl"]');
+    if (collapseBtn) {
+      // Make it visible and clickable
+      collapseBtn.style.display = 'flex';
+      collapseBtn.style.visibility = 'visible';
+      collapseBtn.style.opacity = '1';
+      collapseBtn.style.pointerEvents = 'auto';
+      collapseBtn.style.position = 'fixed';
+      collapseBtn.style.top = '12px';
+      collapseBtn.style.left = '12px';
+      collapseBtn.style.zIndex = '99999';
     }
   }
   
   // Run immediately
-  ensureToggleVisible();
+  fixSidebar();
   
-  // Watch for DOM changes
-  const observer = new MutationObserver(ensureToggleVisible);
+  // Watch for changes
+  const observer = new MutationObserver(fixSidebar);
   observer.observe(document.body, { 
     childList: true, 
     subtree: true, 
-    attributes: true,
-    attributeFilter: ['style', 'class']
+    attributes: true
   });
   
-  // Also check periodically
-  setInterval(ensureToggleVisible, 300);
+  // Also check every 200ms
+  setInterval(fixSidebar, 200);
 })();
 </script>
 """, unsafe_allow_html=True)
@@ -2606,17 +2600,6 @@ def build_sidebar():
 def main():
     inject_css()
     inject_sidebar_toggle_js()
-    
-    # Emergency menu button (in case sidebar gets stuck)
-    col_emergency = st.columns([1, 10])[0]
-    with col_emergency:
-        if st.button("☰ Menu", key="emergency_menu", help="Click to open sidebar menu"):
-            st.markdown("""
-            <script>
-            document.querySelector('[data-testid="collapsedControl"]')?.click();
-            </script>
-            """, unsafe_allow_html=True)
-    
     page = build_sidebar()
 
     if   "Device Selection" in page: page_device_select()
