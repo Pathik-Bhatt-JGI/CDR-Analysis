@@ -200,11 +200,11 @@ def decode_plmn(plmn_str):
     return None,None
 
 def navigate_to(page_name):
+    """Navigate to a page by updating session state"""
     for opt in NAV_OPTIONS:
         if page_name.lower() in opt.lower():
             st.session_state["main_nav"] = opt
-            st.session_state["_main_nav_radio"] = opt
-            st.rerun()
+            st.session_state["_nav_changed"] = True
             break
 
 def get_contacts():
@@ -2589,12 +2589,18 @@ def build_top_nav():
     
     with nav_col1:
         st.markdown('<div style="font-family: var(--mono); font-size: 0.65rem; color: var(--t3); margin-bottom: 6px; letter-spacing: 0.1em;">NAVIGATE</div>', unsafe_allow_html=True)
+        
+        def on_nav_change():
+            # This callback updates main_nav when selectbox changes
+            pass
+        
         selected = st.selectbox(
             "Navigate to:",
             NAV_OPTIONS,
             index=NAV_OPTIONS.index(st.session_state["main_nav"]),
             key="top_nav_select",
-            label_visibility="collapsed"
+            label_visibility="collapsed",
+            on_change=on_nav_change
         )
         st.session_state["main_nav"] = selected
     
@@ -2660,6 +2666,12 @@ def build_top_nav():
 def main():
     inject_css()
     inject_sidebar_toggle_js()
+    
+    # Check if navigation was triggered by a button
+    if st.session_state.get("_nav_changed"):
+        st.session_state["_nav_changed"] = False
+        st.rerun()
+    
     page = build_top_nav()
 
     if   "Device Selection" in page: page_device_select()
