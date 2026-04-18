@@ -2492,8 +2492,8 @@ def build_top_nav():
         justify-content: space-between;
         background: linear-gradient(90deg, rgba(6,12,18,0.95) 0%, rgba(10,20,35,0.9) 100%);
         border-bottom: 1px solid rgba(0,255,179,0.15);
-        padding: 12px 20px;
-        margin: -16px -16px 20px -16px;
+        padding: 8px 20px;
+        margin: -16px -16px 12px -16px;
         gap: 20px;
         flex-wrap: wrap;
     }
@@ -2584,7 +2584,7 @@ def build_top_nav():
             st.rerun()
     
     # Session stats bar
-    st.markdown("---")
+    st.markdown('<div style="margin: 8px 0; height: 1px; background: rgba(0,255,179,0.08)"></div>', unsafe_allow_html=True)
     manual = len(st.session_state.get("records",[]))
     bill = len(st.session_state.get("bill_records", pd.DataFrame())) if isinstance(st.session_state.get("bill_records"), pd.DataFrame) else 0
     towers = len(st.session_state.get("tower_cache",{}))
@@ -2600,7 +2600,7 @@ def build_top_nav():
     with s4:
         st.metric("Identities", book_cnt, delta=None)
     
-    st.markdown("---")
+    st.markdown('<div style="margin: 8px 0; height: 1px; background: rgba(0,255,179,0.08)"></div>', unsafe_allow_html=True)
     
     return st.session_state["main_nav"]
 
